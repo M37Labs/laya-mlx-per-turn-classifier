@@ -1,0 +1,126 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laya Decision Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'classifier/app.css' %}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h4v12h12v4H4z"/><rect x="11" y="4" width="9" height="9" rx="1.5"/></svg>
+      <span>Laya <b>Decision Engine</b></span>
+    </div>
+    <div class="topbar-right">
+      <span class="pill" id="model-pill" data-state="loading"><span class="dot"></span><span id="model-pill-text">Loading model…</span></span>
+      {% if request.user.is_staff %}<a class="link" href="{% url 'admin:classifier_usecase_changelist' %}">Manage use cases</a>
+      {% else %}<a class="link" href="{% url 'admin:index' %}">Admin</a>{% endif %}
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-copy">
+      <h1>Every message, understood in <span class="accent" id="hero-ms">milliseconds</span>.</h1>
+      <p>One compact model makes structured decisions about text for any workflow you describe in plain English. Routing, risk, urgency and intent come from a single pass, running on this laptop, with no data sent to the cloud.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-label">Median decision time</div><div class="stat-value mono" id="stat-p50">–</div><div class="stat-sub" id="stat-p50-sub">model time, all runs</div></div>
+      <div class="stat"><div class="stat-label">Decisions per second</div><div class="stat-value mono" id="stat-dps">–</div><div class="stat-sub">questions answered, one device</div></div>
+      <div class="stat"><div class="stat-label">Model</div><div class="stat-value mono">{{ model_info.params }}</div><div class="stat-sub">parameters · {{ model_info.size }} · {{ model_info.precision }}</div></div>
+      <div class="stat"><div class="stat-label">Data sent to cloud</div><div class="stat-value mono">0 bytes</div><div class="stat-sub" id="stat-hw">runs on-device</div></div>
+    </div>
+  </section>
+
+  <main class="layout">
+    <nav class="usecases" aria-label="Use cases">
+      <div class="nav-title">Use cases</div>
+      <div id="usecase-list"></div>
+    </nav>
+
+    <section class="workspace">
+      <div class="uc-head">
+        <div class="eyebrow" id="uc-industry"></div>
+        <h2 id="uc-name"></h2>
+        <p class="tagline" id="uc-tagline"></p>
+      </div>
+
+      <div class="story">
+        <div class="story-block"><h3>The workflow</h3><p id="uc-description"></p></div>
+        <div class="story-block value"><h3>Business impact</h3><p id="uc-value"></p></div>
+      </div>
+
+      <div class="card input-card">
+        <div class="card-head">
+          <label for="message" id="input-label">Message</label>
+          <span class="hint">Pick an example or type your own</span>
+        </div>
+        <div class="chips" id="examples"></div>
+        <textarea id="message" rows="4" maxlength="4000" placeholder="Paste or type a message…"></textarea>
+        <div class="decides">
+          <span class="decides-label">The model decides:</span>
+          <span id="decides"></span>
+        </div>
+        <div class="actions">
+          <button class="btn primary" id="run">Classify <kbd>⌘↵</kbd></button>
+          <button class="btn" id="run-all">Run all examples</button>
+          <span class="error" id="error" role="alert"></span>
+        </div>
+      </div>
+
+      <div id="result" hidden>
+        <div class="decision" id="decision"></div>
+        <div class="fields" id="fields"></div>
+      </div>
+
+      <div class="card batch" id="batch" hidden>
+        <div class="card-head">
+          <h3>Batch run</h3>
+          <span class="hint" id="batch-summary"></span>
+        </div>
+        <div class="table-wrap"><table id="batch-table"></table></div>
+      </div>
+    </section>
+
+    <aside class="perf" aria-label="Performance">
+      <div class="card">
+        <h3>This request</h3>
+        <dl class="metrics" id="req-metrics">
+          <div><dt>Model inference</dt><dd class="mono" id="m-model">–</dd></div>
+          <div><dt>Server processing</dt><dd class="mono" id="m-server">–</dd></div>
+          <div><dt>Round trip (browser)</dt><dd class="mono" id="m-rtt">–</dd></div>
+          <div><dt>Questions answered</dt><dd class="mono" id="m-fields">–</dd></div>
+          <div><dt>Input tokens</dt><dd class="mono" id="m-tokens">–</dd></div>
+          <div><dt>Throughput</dt><dd class="mono" id="m-throughput">–</dd></div>
+        </dl>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Latency, this session</h3><span class="hint mono" id="hist-summary"></span></div>
+        <div class="hist" id="hist"><div class="hist-empty">Run a message to start the chart.</div></div>
+        <div class="hist-axis"><span>older</span><span>latest</span></div>
+      </div>
+      <div class="card">
+        <h3>Under the hood</h3>
+        <dl class="metrics small">
+          <div><dt>Encoder</dt><dd>{{ model_info.encoder }}</dd></div>
+          <div><dt>Hardware</dt><dd id="hw">–</dd></div>
+          <div><dt>Model load</dt><dd class="mono" id="load-time">–</dd></div>
+          <div><dt>Runs logged</dt><dd class="mono" id="total-runs">–</dd></div>
+          <div><dt>p95 decision time</dt><dd class="mono" id="p95">–</dd></div>
+        </dl>
+        <p class="footnote">Latency is measured on the server around the model call. Every run is logged in the admin panel for audit.</p>
+      </div>
+    </aside>
+  </main>
+
+  <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+
+  {{ use_cases|json_script:"use-cases" }}
+  {{ initial|json_script:"initial-use-case" }}
+  {{ autorun|json_script:"autorun" }}
+  <script src="{% static 'classifier/app.js' %}"></script>
+</body>
+</html>

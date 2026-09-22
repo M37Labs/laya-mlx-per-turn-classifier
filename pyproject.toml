@@ -3,6 +3,7 @@ name = "laya-classifier-per-turn"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "django>=6.1.1",
     "laya-mlx>=0.2.0",
 ]
 
