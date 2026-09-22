@@ -10,7 +10,11 @@ result = agent.predict(
     "I was billed twice. Please refund the duplicate today.",
     {
         "department": {"type": "choice", "instructions": "Which team handles this?",
-                       "criteria": {"billing": "invoices, refunds", "technical": "bugs", "sales": "purchases"}},
+                       "criteria": {
+                           "billing": "invoices, charges, refunds on existing accounts",
+                           "technical": "bugs, errors, outages",
+                           "sales": "purchases, pricing, plans, upgrades, new customers",
+                       }},
         "urgency": {"type": "score", "instructions": "How urgent?",
                     "criteria": ["not urgent", "soon", "critical"]},
         "refund": {"type": "noul", "instructions": "Does the customer ask for money back?"},
@@ -81,8 +85,8 @@ Example output:
 
 ```python
 {
-  'department': {'choice': 'billing', 'confidence': 0.84,
-                 'probabilities': {'billing': 0.96, 'technical': 0.02, 'sales': 0.02}, ...},
+  'department': {'choice': 'billing', 'confidence': 0.87,
+                 'probabilities': {'billing': 0.97, 'technical': 0.02, 'sales': 0.01}, ...},
   'urgency':    {'score': 1.45, 'confidence': 0.14,
                  'probabilities': {'0': 0.15, '1': 0.26, '2': 0.59},
                  'legend': {'0': 'not urgent', '1': 'soon', '2': 'critical'}, ...},
@@ -101,23 +105,30 @@ Example output:
 
 The model loads once per run, so the whole suite takes about 2 s.
 
-**Current status: 21/22 pass.** The failing case is a real finding and is left in on purpose:
+**Current status: 22/22 pass.**
 
-> "Do you offer an enterprise plan? Just exploring options for next year." → **billing** (0.47) over sales (0.39), confidence 0.10
+An earlier version described the labels in one word each (`"billing": "invoices, refunds"`, `"technical": "bugs"`, `"sales": "purchases"`). With that wording, "Do you offer an enterprise plan? Just exploring options for next year." went to **billing** (0.47) over sales (0.39). Describing each label with a few concrete examples fixed it: sales now wins at 0.58. The current wording is in `main.py` and the tests.
 
-The cause is the short `"sales": "purchases"` description. With richer criteria the model picks sales (0.58):
+Department results with the current wording:
 
-```python
-"billing":   "invoices, charges, refunds on existing accounts",
-"technical": "bugs, errors, outages",
-"sales":     "purchases, pricing, plans, upgrades, new customers",
-```
+| Message | Choice | p | confidence |
+|---|---|---:|---:|
+| I was billed twice. Please refund the duplicate today. | billing | 0.97 | 0.87 |
+| Can you send me a copy of last month's invoice… | billing | 0.98 | 0.88 |
+| I cancelled my subscription but was still charged… | billing | 0.97 | 0.84 |
+| The app crashes every time I open the settings page. | technical | 0.89 | 0.62 |
+| Production is down, none of our users can log in! | technical | 0.94 | 0.76 |
+| The export button is slightly misaligned on mobile… | technical | 0.64 | 0.17 |
+| I'd like to buy 50 more seats for my team… | sales | 0.63 | 0.19 |
+| Do you offer an enterprise plan? … | sales | 0.58 | 0.14 |
+
+The labels are all right, but **sales answers still have low confidence** (0.14–0.19), and so does the low-key technical message. Improving these is a good first experiment: try more wording variants, or add more sales-style messages to `CASES`.
 
 To add a case, append a tuple to `CASES`: `(message, department, wants_refund, "high" | "low" | None)`.
 
 ## Things we've learned
 
-- **Criteria wording matters a lot.** The model can only go by what the descriptions say. A one-word description like `"purchases"` loses to `"refunds"` on anything that mentions money, so describe each label with a few concrete examples.
+- **Criteria wording matters a lot.** The model can only go by what the descriptions say. With `"sales": "purchases"`, an enterprise-plan question lost to billing's `"invoices, refunds"`. Adding `"pricing, plans, upgrades, new customers"` fixed it. Describe each label with a few concrete examples, and say what separates it from its neighbours (for example, billing is for *existing* accounts).
 - **Use `confidence` to route.** Low-confidence answers (the urgency above is 0.14, the enterprise-plan miss is 0.10) are good candidates for a human or a fallback. Don't treat the argmax as ground truth.
 - **Calibration warning.** On load you'll see
   `RuntimeWarning: ... clamping choice:11+=0.1006. Treat confidence from the affected buckets as uncalibrated.`
