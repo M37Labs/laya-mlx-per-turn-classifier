@@ -61,9 +61,31 @@ def _stats():
     }
 
 
+@require_GET
+def welcome(request):
+    """The short presentation that leads into the demo."""
+    engine.start_loading()
+    stats = _stats()
+    automated = Prediction.objects.filter(decision="automate").count()
+    return render(
+        request,
+        "classifier/welcome.html",
+        {
+            "use_cases": _use_cases(),
+            "model_info": MODEL_INFO,
+            "stats": stats,
+            # Share of logged demo runs that System 1 handled alone; seeds the cost calculator.
+            "automation_rate": round(100 * automated / stats["total_predictions"]) if stats["total_predictions"] else None,
+            # Messages one device can classify per day, one at a time, at the median latency.
+            "daily_capacity": round(86_400_000 / stats["p50_ms"], -4) if stats["p50_ms"] else None,
+            "hardware": engine.HARDWARE,
+        },
+    )
+
+
 @ensure_csrf_cookie
 @require_GET
-def index(request):
+def demo(request):
     engine.start_loading()
     return render(
         request,

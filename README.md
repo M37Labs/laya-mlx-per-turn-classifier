@@ -55,16 +55,30 @@ uv run python manage.py runserver --noreload   # http://127.0.0.1:8000
 
 The model loads in the background when the server starts (about 1 s once cached). The server then runs every demo example once (about 2.5 s) so the first click in a live demo isn't slow.
 
-**What the audience sees**
+**The flow: five welcome slides, then the live demo**
+
+`/` opens a short deck that sets up the demo. Move through it with the arrow keys, space, a swipe, or the progress bar. "Skip to live demo" is always in the header.
+
+| # | Slide | Point it makes |
+|---|---|---|
+| 1 | Fast decisions first | The pitch, with live latency, model size and "0 bytes to the cloud" |
+| 2 | Two systems, like the mind | Kahneman's System 1 / System 2 applied to AI: an encoder decides every message in milliseconds, and only low-confidence or complex cases go to an LLM, agent or person. Diagram and comparison table. |
+| 3 | One pass. Every answer. With confidence. | Why encoders suit System 1: structured output, many questions per pass, confidence-based escalation, set up in plain English. Includes this machine's live median latency and daily capacity. |
+| 4 | Pay for reasoning only when you need it | A cost calculator (volume, System 1 share, *your* LLM cost per message; the share starts at the demo's measured automation rate) and on-prem/offline/data-residency points |
+| 5 | See it decide | The use cases as cards. Each one opens the demo and classifies its first example. |
+
+Every figure on the slides is either measured on the running server or entered by the presenter. The LLM price is an explicit input, not a claim.
+
+**What the audience sees in the demo (`/demo/`)**
 
 - A **use-case picker** grouped by industry. Each use case explains the workflow and its business impact in plain language.
 - A **message box** with one-click examples, plus free text: let the audience type their own.
 - **One card per question the model answers:** a probability bar for each choice, a scale for ordered levels, a yes/no meter, and the confidence against the automation gate. Hover any chart for the details.
-- An **Automate / Send to human review** decision. A use case can require a minimum confidence on some fields; if any of those falls short, the message goes to a person, and the banner says which field and by how much.
+- An **Automate · System 1 / Escalate to System 2** decision, using the same terms as the slides. A use case can require a minimum confidence on some fields. If any of those falls short, the message escalates to System 2 (an LLM or a person), and the banner says which field and by how much.
 - **Run all examples:** a batch table with every example's answers, decision and latency, plus an automation rate.
 - **Live technical figures:** model inference time, server processing time, browser round trip, input tokens, decisions per second, p50/p95 across all logged runs, the hardware, and model load time.
 
-Presenter shortcuts: `/?use_case=banking-servicing` opens a specific use case, `&run=1` classifies the first example as soon as the model is ready, and `&run=all` runs the batch.
+Presenter shortcuts: `/#3` opens slide 3. `/demo/?use_case=banking-servicing` opens a specific use case, `&run=1` classifies its first example as soon as the model is ready, and `&run=all` runs the batch.
 
 The header carries the M37 Labs mark (an inline SVG, so it works in light and dark mode). The same mark is the favicon, at `classifier/static/classifier/m37labs-mark.svg`.
 
@@ -107,6 +121,7 @@ To restore the default demo content after experiments: `uv run python manage.py 
 | `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | comma-separated |
 | `LAYA_MODEL_ID` | `aac6fef/laya-mlx` | any laya-mlx checkpoint |
 | `LAYA_PRELOAD` | `1` | load the model at server start |
+| `HF_HUB_OFFLINE` | unset | set `1` for air-gapped or offline use: the model loads from the local cache with no network calls (tested) |
 
 The app runs one prediction at a time (MLX inference is serialised behind a lock) and the model runs on the server, so the server must be an Apple Silicon Mac. It's built for live demos and small pilots, not production traffic.
 
@@ -254,6 +269,9 @@ classifier/
   views.py                # page + JSON API (/api/status, /api/classify)
   seed.py                 # the 8 demo use cases (migration 0002 and seed_use_cases)
   templates/, static/     # the frontend (plain HTML/CSS/JS, no build step)
+                          #   welcome.html/.css/.js: the 5-slide intro deck at /
+                          #   index.html + app.css/.js: the live demo at /demo/
+                          #   partials/brand.html: Laya × M37 Labs header lockup
   tests.py                # Django tests (model stubbed)
 docs/demo.png             # README screenshot
 main.py                   # the example script

@@ -1,0 +1,234 @@
+{% load static humanize %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laya Decision Engine · M37 Labs</title>
+  <link rel="icon" href="{% static 'classifier/m37labs-mark.svg' %}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@600&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'classifier/app.css' %}">
+  <link rel="stylesheet" href="{% static 'classifier/welcome.css' %}">
+</head>
+<body class="deck-body">
+  <header class="topbar">
+    {% include "classifier/partials/brand.html" %}
+    <div class="topbar-right">
+      <span class="slide-count mono" id="slide-count" aria-live="polite">1 / 5</span>
+      <a class="btn small" href="{% url 'demo' %}">Skip to live demo →</a>
+    </div>
+  </header>
+
+  <main class="deck" id="deck">
+
+    {# 1 · Cover #}
+    <section class="slide cover" data-title="Laya Decision Engine">
+      <div class="slide-inner">
+        <div class="eyebrow">M37 Labs · Laya Decision Engine</div>
+        <h1>Fast decisions <span class="m37-text">first</span>.<br>Deep reasoning only where it counts.</h1>
+        <p class="lede">A small encoder model reads every message in milliseconds and decides what happens next. Only the hard cases go to large language models or to people.</p>
+        <div class="cover-facts">
+          <div><span class="mono big">{% if stats.p50_ms %}~{{ stats.p50_ms|floatformat:0 }} ms{% else %}&lt;100 ms{% endif %}</span><span>per decision</span></div>
+          <div><span class="mono big">{{ model_info.params }}</span><span>parameters</span></div>
+          <div><span class="mono big">0 bytes</span><span>sent to the cloud</span></div>
+        </div>
+        <div class="cta-row">
+          <button class="btn primary" type="button" data-go="next">Begin →</button>
+          <a class="link" href="{% url 'demo' %}">or jump straight to the demo</a>
+        </div>
+      </div>
+    </section>
+
+    {# 2 · Two systems #}
+    <section class="slide" data-title="Two systems">
+      <div class="slide-inner">
+        <div class="eyebrow">The idea</div>
+        <h2>Two systems, like the mind.</h2>
+        <p class="lede">In <em>Thinking, Fast and Slow</em>, Kahneman describes a fast, intuitive System&nbsp;1 that handles most decisions, and a slow, deliberate System&nbsp;2 that steps in when it's needed. AI workflows can work the same way.</p>
+
+        <div class="flow" role="img" aria-label="Every message goes to System 1. Confident answers are acted on automatically; low-confidence or complex cases go to System 2.">
+          <div class="node source">
+            <div class="node-kicker">Input</div>
+            <div class="node-title">Every message</div>
+            <div class="node-sub">tickets, emails, chats, claims</div>
+          </div>
+          <div class="arrow" aria-hidden="true"></div>
+          <div class="node s1">
+            <div class="node-kicker">System 1 · Laya encoder</div>
+            <div class="node-title">Decide in milliseconds</div>
+            <div class="node-sub">route · urgency · risk · intent, each with a confidence</div>
+          </div>
+          <div class="fork" aria-hidden="true"><span></span><span></span></div>
+          <div class="outcomes">
+            <div class="node act">
+              <div class="node-kicker">Confident</div>
+              <div class="node-title">Act automatically</div>
+              <div class="node-sub">most of the volume</div>
+            </div>
+            <div class="node s2">
+              <div class="node-kicker">Low confidence or complex</div>
+              <div class="node-title">System 2</div>
+              <div class="node-sub">an LLM, an agent or a person</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="compare">
+            <thead><tr><th></th><th>System 1 · encoder</th><th>System 2 · LLM or person</th></tr></thead>
+            <tbody>
+              <tr><th>Speed</th><td>milliseconds</td><td>seconds to hours</td></tr>
+              <tr><th>Output</th><td>labels, scores, confidence</td><td>free-form reasoning and actions</td></tr>
+              <tr><th>Cost per decision</th><td>near zero on your own hardware</td><td>per-token fees or staff time</td></tr>
+              <tr><th>Best at</th><td>high-volume, well-defined calls</td><td>ambiguity, judgement, multi-step work</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    {# 3 · What System 1 does well #}
+    <section class="slide" data-title="What System 1 does well">
+      <div class="slide-inner">
+        <div class="eyebrow">Why an encoder</div>
+        <h2>One pass. Every answer. With confidence.</h2>
+        <p class="lede">Laya-MLX and similar encoder classifiers read text rather than write it. That's what makes them fast, cheap and predictable.</p>
+        <div class="cards">
+          <div class="pcard">
+            <div class="pnum mono">01</div>
+            <h3>Structured, not generated</h3>
+            <p>Returns labels, scores and yes/no answers your systems can act on directly. There's no text to parse and no invented formats.</p>
+          </div>
+          <div class="pcard">
+            <div class="pnum mono">02</div>
+            <h3>Many questions at once</h3>
+            <p>Routing, urgency, risk and intent come from the same pass. An extra question adds milliseconds, not another model call.</p>
+          </div>
+          <div class="pcard">
+            <div class="pnum mono">03</div>
+            <h3>Knows when it's unsure</h3>
+            <p>Every answer carries a confidence. When it falls below your threshold, the case escalates to System&nbsp;2 instead of guessing.</p>
+          </div>
+          <div class="pcard">
+            <div class="pnum mono">04</div>
+            <h3>Set up in plain English</h3>
+            <p>A new workflow is a list of questions and options. There's no labelled dataset to build and no retraining.</p>
+          </div>
+        </div>
+        <div class="live-strip">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span>Live on this machine:</span>
+          {% if stats.p50_ms %}
+            <span class="mono">{{ stats.p50_ms|floatformat:0 }} ms median</span>
+            <span class="sep">·</span>
+            <span class="mono">~{{ daily_capacity|intword }} messages/day</span>
+            <span class="note">(one device, one message at a time)</span>
+            <span class="sep">·</span>
+          {% else %}
+            <span class="note">figures appear here after the first demo runs</span>
+            <span class="sep">·</span>
+          {% endif %}
+          <span class="mono">{{ hardware }}</span>
+        </div>
+      </div>
+    </section>
+
+    {# 4 · Cost & control #}
+    <section class="slide" data-title="Cost and control">
+      <div class="slide-inner">
+        <div class="eyebrow">Business case</div>
+        <h2>Pay for reasoning only when you need it.</h2>
+        <div class="two-col">
+          <div class="calc card">
+            <h3 class="calc-title">What System 1 saves</h3>
+            <label class="field-row">
+              <span>Messages per month</span>
+              <output class="mono" id="out-volume"></output>
+              <input type="range" id="in-volume" min="0" max="100" step="1" value="50">
+            </label>
+            <label class="field-row">
+              <span>Handled by System 1 alone</span>
+              <output class="mono" id="out-share"></output>
+              <input type="range" id="in-share" min="0" max="100" step="1" value="{{ automation_rate|default:70 }}">
+            </label>
+            <label class="field-row inline">
+              <span>LLM cost per message <small>(your assumption)</small></span>
+              <span class="money-input"><span>$</span><input type="number" id="in-cost" min="0" step="0.001" value="0.01" inputmode="decimal"></span>
+            </label>
+
+            <div class="bars-compare" id="bars" aria-live="polite">
+              <div class="bc-row" data-tip="">
+                <span class="bc-label">All to an LLM</span>
+                <span class="bc-track"><span class="bc-fill base" id="bar-all"></span></span>
+                <span class="bc-val mono" id="val-all"></span>
+              </div>
+              <div class="bc-row" data-tip="">
+                <span class="bc-label">System 1 first</span>
+                <span class="bc-track"><span class="bc-fill" id="bar-hybrid"></span></span>
+                <span class="bc-val mono" id="val-hybrid"></span>
+              </div>
+            </div>
+            <div class="saving">
+              <span>Estimated saving</span>
+              <span class="mono m37-text" id="saving"></span>
+            </div>
+            <p class="fine">Monthly LLM spend. System 1 runs on hardware you own, so its marginal cost is mostly electricity.
+              {% if automation_rate is not None %}The System 1 share starts at this demo's own automation rate ({{ automation_rate }}%).{% endif %}</p>
+          </div>
+
+          <ul class="control">
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+              <div><h3>On-prem and offline</h3><p>Runs entirely on your hardware. Once the weights are downloaded, no internet connection is needed, so it suits air-gapped sites.</p></div>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+              <div><h3>Data stays where it is</h3><p>Messages never leave the device, which simplifies privacy and data-residency reviews.</p></div>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M6 16V9m6 7V5m6 11v-4"/></svg>
+              <div><h3>Predictable</h3><p>A fixed hardware cost: no per-token bill, no rate limits, and the same answer for the same input.</p></div>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+              <div><h3>Small enough to go anywhere</h3><p>{{ model_info.size }} of weights. This build runs on Apple Silicon with MLX, and the same encoder family runs on standard CPU and GPU servers.</p></div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    {# 5 · Into the demo #}
+    <section class="slide" data-title="See it decide">
+      <div class="slide-inner">
+        <div class="eyebrow">Live demo</div>
+        <h2>See it decide.</h2>
+        <p class="lede">{{ use_cases|length }} workflows, one model, running live on this machine. Pick one to start.</p>
+        <div class="uc-grid">
+          {% for uc in use_cases %}
+          <a class="uc-card" href="{% url 'demo' %}?use_case={{ uc.slug }}&amp;run=1">
+            <span class="uc-ind">{{ uc.industry }}</span>
+            <span class="uc-name">{{ uc.name }}</span>
+            <span class="uc-tag">{{ uc.tagline }}</span>
+            <span class="uc-go" aria-hidden="true">→</span>
+          </a>
+          {% endfor %}
+        </div>
+        <div class="cta-row">
+          <a class="btn primary" href="{% url 'demo' %}">Open the live demo →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="deck-nav" aria-label="Slides">
+    <button class="nav-btn" type="button" data-go="prev" aria-label="Previous slide">←</button>
+    <div class="progress" id="progress"></div>
+    <button class="nav-btn" type="button" data-go="next" aria-label="Next slide">→</button>
+  </nav>
+
+  <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+  <script src="{% static 'classifier/welcome.js' %}"></script>
+</body>
+</html>

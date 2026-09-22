@@ -26,7 +26,7 @@ class UseCase(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse("index") + f"?use_case={self.slug}"
+        return reverse("demo") + f"?use_case={self.slug}"
 
     def schema(self):
         """The laya-mlx question schema for this use case."""
@@ -63,7 +63,8 @@ class Field(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(1)],
         help_text=(
             "Automation gate. When this field's confidence falls below this value, the decision "
-            "goes to human review. Leave blank for fields that shouldn't block automation."
+            "escalates to System 2 (an LLM or a person). Leave blank for fields that shouldn't "
+            "block automation."
         ),
     )
     order = models.PositiveIntegerField(default=0)

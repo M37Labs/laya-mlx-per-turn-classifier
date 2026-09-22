@@ -84,9 +84,9 @@ class ApiTests(TestCase):
     def post(self, payload):
         return self.client.post("/api/classify", json.dumps(payload), content_type="application/json")
 
-    def test_index_renders_active_use_cases(self, _):
+    def test_demo_renders_active_use_cases(self, _):
         UseCase.objects.filter(slug="hr-helpdesk").update(is_active=False)
-        resp = self.client.get("/")
+        resp = self.client.get("/demo/")
         self.assertContains(resp, "Customer Support Triage")
         self.assertNotContains(resp, "Employee Helpdesk")
 
@@ -105,6 +105,21 @@ class ApiTests(TestCase):
         text, schema = predict.call_args.args
         self.assertEqual(text, "I was billed twice.")
         self.assertEqual(set(schema), {"department", "urgency", "refund"})
+
+    def test_welcome_links_into_demo(self, _):
+        resp = self.client.get("/")
+        self.assertContains(resp, "System 1")
+        self.assertContains(resp, "/demo/?use_case=banking-servicing")
+
+    @mock.patch("classifier.engine.predict")
+    def test_welcome_shows_live_stats_once_runs_exist(self, predict, _):
+        predict.return_value = ({"answers": fake_answers(), "usage": {"input_tokens": 140}}, 80.0)
+        self.post({"use_case": "support-triage", "text": "I was billed twice."})
+        resp = self.client.get("/")
+        self.assertEqual(resp.context["stats"]["p50_ms"], 80.0)
+        self.assertEqual(resp.context["daily_capacity"], 1_080_000)
+        self.assertContains(resp, "~1.1 million messages/day")
+        self.assertEqual(resp.context["automation_rate"], 100)
 
     def test_classify_rejects_bad_input(self, _):
         self.assertEqual(self.post({"use_case": "support-triage", "text": "  "}).status_code, 400)

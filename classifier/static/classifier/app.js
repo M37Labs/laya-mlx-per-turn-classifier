@@ -213,7 +213,7 @@
       const total = done.reduce((s, d) => s + d.metrics.model_ms, 0);
       const fields = done.reduce((s, d) => s + d.metrics.fields, 0);
       $("batch-summary").textContent =
-        `${auto} of ${done.length} automated · ${fields} decisions in ${ms(total)} total · avg ${ms(total / done.length)} per message`;
+        `${auto} of ${done.length} handled by System 1 · ${fields} decisions in ${ms(total)} total · avg ${ms(total / done.length)} per message`;
     }
     setBusy(false);
   }
@@ -236,18 +236,18 @@
   }
 
   function decisionBadge(kind) {
-    return el("span", { class: `badge ${kind}` }, kind === "automate" ? "✓ Automate" : "⚠ Human review");
+    return el("span", { class: `badge ${kind}` }, kind === "automate" ? "✓ System 1" : "⚠ System 2");
   }
 
   function renderResult(data) {
     const d = $("decision");
     d.dataset.kind = data.decision;
     const why = data.decision === "automate"
-      ? "Every gated answer cleared its confidence threshold. Safe to act without a person."
-      : `Low confidence on ${data.reasons.map((r) => `${r.label} (${pct(r.confidence)} < ${pct(r.required)})`).join(", ")}. Route to a person.`;
+      ? "Every gated answer cleared its confidence threshold. System 1 can act on its own."
+      : `Low confidence on ${data.reasons.map((r) => `${r.label} (${pct(r.confidence)} < ${pct(r.required)})`).join(", ")}. Hand to System 2: an LLM or a person.`;
     d.replaceChildren(
       el("span", { class: "icon", "aria-hidden": "true" }, data.decision === "automate" ? "✓" : "!"),
-      el("div", {}, el("div", { class: "title", text: data.decision === "automate" ? "Automate" : "Send to human review" })),
+      el("div", {}, el("div", { class: "title", text: data.decision === "automate" ? "Automate · System 1" : "Escalate to System 2" })),
       el("div", { class: "why", text: why }),
       el("div", { class: "speed", text: `${data.metrics.fields} decisions · ${ms(data.metrics.model_ms)}` }));
 
