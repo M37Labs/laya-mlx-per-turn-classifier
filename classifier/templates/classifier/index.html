@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Laya Decision Engine</title>
+  <title>Laya Decision Engine · M37 Labs</title>
+  <link rel="icon" href="{% static 'classifier/m37labs-mark.svg' %}" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@600&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'classifier/app.css' %}">
 </head>
 <body>
@@ -14,6 +15,29 @@
     <div class="brand">
       <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h4v12h12v4H4z"/><rect x="11" y="4" width="9" height="9" rx="1.5"/></svg>
       <span>Laya <b>Decision Engine</b></span>
+      <span class="by" aria-label="by M37 Labs">
+        <span class="by-word">by</span>
+        <svg class="m37-mark" viewBox="282 443 1368 665" role="img" aria-label="M37 Labs logo">
+          <defs>
+            <linearGradient id="m37-grad" gradientUnits="userSpaceOnUse" x1="330" y1="1060" x2="1640" y2="450">
+              <stop offset="0" stop-color="#ff14b8"/>
+              <stop offset="0.36" stop-color="#a744ff"/>
+              <stop offset="0.68" stop-color="#2f64ff"/>
+              <stop offset="1" stop-color="#58f7a6"/>
+            </linearGradient>
+          </defs>
+          <g fill="url(#m37-grad)">
+            <rect x="282" y="629" width="189" height="478"/>
+            <rect x="471" y="443" width="274" height="189"/>
+            <rect x="744" y="631" width="188" height="476"/>
+            <rect x="932" y="445" width="206" height="189"/>
+            <rect x="1226" y="445" width="237" height="189"/>
+            <rect x="1462" y="633" width="188" height="473"/>
+            <rect x="1139" y="766" width="324" height="189"/>
+          </g>
+        </svg>
+        <span class="m37-name">M37&nbsp;Labs</span>
+      </span>
     </div>
     <div class="topbar-right">
       <span class="pill" id="model-pill" data-state="loading"><span class="dot"></span><span id="model-pill-text">Loading model…</span></span>
