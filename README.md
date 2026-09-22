@@ -1,5 +1,11 @@
 # laya-mlx per-turn classifier
 
+**By [M37 Labs](https://github.com/M37Labs).** Includes the *Laya Decision Engine* demo app for showing enterprise use cases to executives.
+
+![Laya Decision Engine demo: support triage batch run](docs/demo.png)
+
+*The demo running "Run all examples" on an M1 Pro. The first row's 429 ms overlapped with the screenshot browser starting up; typical messages take 50–130 ms.*
+
 A starting point for trying out [`laya-mlx`](https://pypi.org/project/laya-mlx/) as a **per-turn classifier** for customer messages. You describe what you want to know in a schema (which team, how urgent, is it a refund request?). The model answers every field in a single pass on Apple Silicon, in about 50 ms.
 
 ```python
@@ -42,8 +48,10 @@ A Django web app that shows the model working across eight enterprise workflows,
 ```bash
 uv run python manage.py migrate            # creates db.sqlite3 and loads the 8 demo use cases
 uv run python manage.py createsuperuser    # an account for the admin panel
-uv run python manage.py runserver          # http://127.0.0.1:8000
+uv run python manage.py runserver --noreload   # http://127.0.0.1:8000
 ```
+
+**Use `--noreload` for live demos.** Django's autoreloader checks thousands of module files every second (MLX, numpy and so on) and holds Python's global interpreter lock while it does. In our measurements that turned occasional requests into 250–1,300 ms spikes. With `--noreload`, p95 over all 33 examples is about 125 ms. Leave the autoreloader on only while editing code.
 
 The model loads in the background when the server starts (about 1 s once cached). The server then runs every demo example once (about 2.5 s) so the first click in a live demo isn't slow.
 
@@ -57,6 +65,8 @@ The model loads in the background when the server starts (about 1 s once cached)
 - **Live technical figures:** model inference time, server processing time, browser round trip, input tokens, decisions per second, p50/p95 across all logged runs, the hardware, and model load time.
 
 Presenter shortcuts: `/?use_case=banking-servicing` opens a specific use case, `&run=1` classifies the first example as soon as the model is ready, and `&run=all` runs the batch.
+
+The header carries the M37 Labs mark (an inline SVG, so it works in light and dark mode). The same mark is the favicon, at `classifier/static/classifier/m37labs-mark.svg`.
 
 **Demo use cases**
 
@@ -195,7 +205,8 @@ To add a case, append a tuple to `CASES`: `(message, department, wants_refund, "
 
 ## Things we've learned
 
-- **Latency in the web app is about 60 ms per message** (3–4 questions) on an M1 Pro. Standalone Python is about 50 ms, and the gap is mostly the dev server's autoreloader. The first message of a new input length is slower (up to about 110 ms) while MLX compiles kernels for that length. The app pads inputs to multiples of 32 and warms up on the examples to keep this rare.
+- **Latency in the web app** (M1 Pro, `runserver --noreload`): about 50 ms for a short 3-question message, and a median of about 80 ms / p95 about 125 ms across all 33 demo examples (140–285 input tokens, 2–4 questions). Longer schemas (more options, longer descriptions) cost more than longer messages. The first message of a new input length is slower while MLX compiles for that length. The app pads inputs to multiples of 32 tokens and warms up on the examples to keep this rare.
+- **Measure latency without other heavy processes running.** A headless browser, or anything else competing for the GPU/CPU, adds hundreds of milliseconds, and those runs stay in the p50/p95 stats. To reset the stats, delete the Predictions in the admin, or run `uv run python manage.py shell -c "from classifier.models import Prediction; Prediction.objects.all().delete()"`.
 
 - **Criteria wording matters a lot.** The model can only go by what the descriptions say. With `"sales": "purchases"`, an enterprise-plan question lost to billing's `"invoices, refunds"`. Adding `"pricing, plans, upgrades, new customers"` fixed it. Describe each label with a few concrete examples, and say what separates it from its neighbours (for example, billing is for *existing* accounts).
 - **Use `confidence` to route.** Low-confidence answers (the urgency above is 0.14, the enterprise-plan miss is 0.10) are good candidates for a human or a fallback. Don't treat the argmax as ground truth.
@@ -244,6 +255,7 @@ classifier/
   seed.py                 # the 8 demo use cases (migration 0002 and seed_use_cases)
   templates/, static/     # the frontend (plain HTML/CSS/JS, no build step)
   tests.py                # Django tests (model stubbed)
+docs/demo.png             # README screenshot
 main.py                   # the example script
 tests/test_classifier.py  # labelled cases + pytest checks
 pyproject.toml            # deps (laya-mlx; pytest in dev group) + pytest config

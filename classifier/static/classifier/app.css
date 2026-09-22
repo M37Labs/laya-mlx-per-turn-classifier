@@ -272,7 +272,8 @@ kbd { font-family: var(--mono); font-size: 11px; opacity: .75; margin-left: 6px;
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th { text-align: left; font-weight: 600; color: var(--ink-2); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
 td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
-td.num, th.num { text-align: right; font-family: var(--mono); }
+td.num, th.num { text-align: right; font-family: var(--mono); white-space: nowrap; }
+td .sub.mono { white-space: nowrap; }
 td .sub { color: var(--ink-3); font-size: 12px; }
 td:first-child { min-width: 200px; }
 .badge { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; font-size: 12px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }

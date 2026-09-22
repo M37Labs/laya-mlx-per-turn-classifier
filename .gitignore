@@ -1,7 +1,40 @@
-.venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Virtual environments (uv creates .venv)
+.venv/
+venv/
+env/
+
+# Tooling caches
 .pytest_cache/
-.DS_Store
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Django
 db.sqlite3
+db.sqlite3-journal
 staticfiles/
+media/
+*.log
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+
+# Hugging Face model cache, if pointed inside the repo (the model is ~843 MB)
+.cache/
+*.safetensors
+
+# Editors and OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
